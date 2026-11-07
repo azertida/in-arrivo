@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>In arrivo</title>
+<meta name="theme-color" content="#FAF5EA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="In arrivo">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+:root{
+  --fond:#FAF5EA; --carte:#FFFDF8; --ocre:#B3261E; --ocre-clair:#F6DCD8;
+  --texte:#2B2118; --doux:#6B5E4E; --bord:#E3D6BD;
+  --alerte:#7A1A14; --alerte-fond:#FBEAE8; --vert:#3B7046; --vert-fond:#E6F0E3;
+  --auj:#2F5E8C; --auj-fond:#E5EEF7;
+}
+*{box-sizing:border-box}
+html{font-size:18px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--fond);color:var(--texte);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.4;
+  padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 2rem)}
+main{max-width:40rem;margin:0 auto;padding:0 1rem}
+header{padding:1.2rem 0 .6rem}
+h1{font-size:1.7rem;margin:0;letter-spacing:.01em}
+h1 span{color:var(--ocre)}
+.sous{color:var(--doux);margin:.2rem 0 0}
+button,.btn{font:inherit;border-radius:.8rem;border:1px solid var(--bord);background:var(--carte);color:var(--texte);
+  padding:.65rem 1rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:.4rem}
+.principal{background:var(--ocre);color:#fff;border-color:var(--ocre);font-weight:600}
+.grand{width:100%;padding:1rem;font-size:1.1rem;margin:.6rem 0 1rem}
+.lien{background:none;border:none;color:var(--ocre);text-decoration:underline;padding:.4rem 0}
+h2{font-size:1.15rem;margin:1.4rem 0 .5rem;display:flex;align-items:center;gap:.5rem}
+h2 .nb{background:var(--ocre-clair);border-radius:1rem;padding:0 .55rem;font-size:1rem}
+.carte{background:var(--carte);border:1px solid var(--bord);border-radius:1rem;padding:.9rem 1rem;margin:.6rem 0;cursor:pointer}
+.carte.alerte{border:1px solid #EBC3B9;border-left:6px solid var(--alerte);background:var(--alerte-fond)}
+.carte.auj{border-left:6px solid var(--auj)}
+.haut{display:flex;justify-content:space-between;align-items:baseline;gap:.5rem}
+.boutique{font-weight:700;font-size:1.1rem}
+.etape{color:var(--doux);white-space:nowrap}
+.quoi{margin-top:.1rem}
+.statut{margin-top:.4rem;font-weight:600}
+.statut.alerte{color:var(--alerte)} .statut.auj{color:var(--auj)} .statut.pale{color:var(--doux);font-weight:400}
+.hist{color:var(--doux);margin-top:.2rem}
+.transp{color:var(--doux);margin-top:.2rem;overflow-wrap:anywhere}
+.actions{display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap}
+.actions .ok{background:var(--vert-fond);border-color:#BFD6BA;color:var(--vert);font-weight:600}
+.vide{background:var(--carte);border:1px dashed var(--bord);border-radius:1rem;padding:1.2rem;color:var(--doux)}
+details.fini summary{cursor:pointer;font-size:1.15rem;font-weight:700;margin:1.4rem 0 .5rem}
+details.fini .carte{opacity:.8}
+.pied{margin-top:2.5rem;border-top:1px solid var(--bord);padding-top:1rem;color:var(--doux)}
+.pied .actions{margin-top:.5rem}
+/* Feuille plein écran */
+.feuille{position:fixed;inset:0;background:var(--fond);overflow-y:auto;z-index:10;
+  padding:calc(env(safe-area-inset-top) + .5rem) 0 calc(env(safe-area-inset-bottom) + 2rem)}
+.feuille[hidden]{display:none}
+.feuille .barre{display:flex;justify-content:space-between;align-items:center;max-width:40rem;margin:0 auto;padding:.4rem 1rem}
+.feuille .barre h2{margin:0}
+.feuille main{padding-top:.2rem}
+textarea,input,select{font:inherit;width:100%;border:1px solid var(--bord);border-radius:.7rem;padding:.65rem .75rem;background:#fff;color:var(--texte)}
+textarea{min-height:11rem;resize:vertical}
+label{display:block;margin:.9rem 0 .25rem;font-weight:600}
+.aide{color:var(--doux);margin:.25rem 0 0}
+.rangee{display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap}
+.rangee>*{flex:1}
+.etapes{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
+.etapes button{padding:.6rem .4rem}
+.etapes button.choisie{background:var(--ocre);color:#fff;border-color:var(--ocre);font-weight:600}
+.trouve{background:var(--vert-fond);border:1px solid #BFD6BA;border-radius:.8rem;padding:.7rem .9rem;margin:.6rem 0}
+.trouve.rien{background:var(--alerte-fond);border-color:#EBC3B9}
+.choix{background:var(--carte);border:1px solid var(--bord);border-radius:.8rem;padding:.4rem .9rem;margin:.6rem 0}
+.choix label{font-weight:400;display:flex;gap:.6rem;align-items:flex-start;margin:.5rem 0}
+.choix input{width:auto;margin-top:.3rem}
+.journal{color:var(--doux);white-space:pre-wrap;overflow-wrap:anywhere;border-left:3px solid var(--bord);padding-left:.7rem;margin:.6rem 0}
+.danger{color:var(--alerte);border-color:#EBC3B9}
+.retrait[hidden]{display:none}
+</style>
+</head>
+<body>
+<main id="accueil">
+  <header>
+    <h1>In <span>arrivo</span></h1>
+    <p class="sous">Où en sont mes colis&#8239;?</p>
+  </header>
+  <button class="principal grand" id="btnColler">Coller un message</button>
+  <div id="liste"></div>
+  <div class="pied">
+    <div>Tes commandes restent sur ce téléphone. Pense à les sauvegarder de temps en temps.</div>
+    <div class="actions">
+      <button id="btnExport">Sauvegarder</button>
+      <button id="btnImport">Restaurer</button>
+      <input type="file" id="fichierImport" accept="application/json,.json" hidden>
+    </div>
+  </div>
+</main>
+
+<!-- Feuille : coller un message -->
+<section class="feuille" id="feuilleColler" hidden>
+  <div class="barre"><h2>Coller un message</h2><button id="fermerColler">Fermer</button></div>
+  <main>
+    <p class="aide">Mail, WhatsApp, notification de Cartes… colle le texte tel quel, je cherche le reste.</p>
+    <textarea id="texteColle" placeholder="Colle ici le message de la boutique ou du transporteur"></textarea>
+    <div class="rangee">
+      <button id="btnPressePapier">Coller</button>
+      <button class="principal" id="btnAnalyser">Analyser</button>
+    </div>
+    <p><button class="lien" id="btnManuel">Saisir sans message</button></p>
+  </main>
+</section>
+
+<!-- Feuille : fiche d'une commande -->
+<section class="feuille" id="feuilleFiche" hidden>
+  <div class="barre"><h2 id="titreFiche">Commande</h2><button id="fermerFiche">Fermer</button></div>
+  <main id="corpsFiche"></main>
+</section>
+
+<script>
+'use strict';
+// ==== PARSER-START ====
+const N = ' '; // espace fine insécable avant ? ! ; :
+
+const TRANSPORTEURS = [
+  { id:'bpost', nom:'bpost', mots:/\bbpost\b/i, domaine:/bpost/i,
+    motifs:[/\b(3232\d{20})\b/, /\b([A-Z]{2}\d{9}BE)\b/, /\b(\d{24})\b/],
+    url:c=>`https://track.bpost.cloud/btr/web/#/search?itemCode=${c}&lang=fr` },
+  { id:'postnl', nom:'PostNL', mots:/post\s?nl/i, domaine:/postnl/i,
+    motifs:[/\b(3S[A-Z0-9]{8,13})\b/, /\b([A-Z]{2}\d{9}NL)\b/],
+    url:c=>`https://jouw.postnl.nl/track-and-trace/${c}-BE` },
+  { id:'dhl', nom:'DHL', mots:/\bdhl\b/i, domaine:/dhl/i,
+    motifs:[/\b(JJD\d{16,22})\b/, /\b(JVGL\d{12,22})\b/, /\b(00340\d{15})\b/],
+    url:c=>`https://www.dhl.com/be-fr/home/suivi.html?tracking-id=${c}&submit=1` },
+  { id:'ups', nom:'UPS', mots:/\bups\b/i, domaine:/ups\.com/i,
+    motifs:[/\b(1Z[0-9A-Z]{16})\b/],
+    url:c=>`https://www.ups.com/track?loc=fr_BE&tracknum=${c}` },
+  { id:'dpd', nom:'DPD', mots:/\bdpd\b/i, domaine:/dpd/i,
+    motifs:[/\b(0\d{13})\b/],
+    url:c=>`https://tracking.dpd.de/status/fr_BE/parcel/${c}` },
+  { id:'gls', nom:'GLS', mots:/\bgls\b/i, domaine:/gls/i, motifs:[],
+    url:c=>`https://gls-group.com/BE/fr/suivi-colis?match=${c}` },
+  { id:'colissimo', nom:'La Poste / Colissimo', mots:/colissimo|\bla poste\b/i, domaine:/laposte|colissimo/i,
+    motifs:[/\b(\d[A-Z]\d{11})\b/, /\b([A-Z]{2}\d{9}FR)\b/],
+    url:c=>`https://www.laposte.fr/outils/suivre-vos-envois?code=${c}` },
+  { id:'mondialrelay', nom:'Mondial Relay', mots:/mondial\s?relay/i, domaine:/mondialrelay/i, motifs:[],
+    url:c=>`https://www.mondialrelay.be/fr-be/suivi-de-colis/?NumeroExpedition=${c}` },
+  { id:'chronopost', nom:'Chronopost', mots:/chronopost/i, domaine:/chronopost/i, motifs:[],
+    url:c=>`https://www.chronopost.fr/tracking-no-cms/suivi-page?listeNumerosLT=${c}` },
+  { id:'fedex', nom:'FedEx', mots:/fed\s?ex/i, domaine:/fedex/i, motifs:[],
+    url:c=>`https://www.fedex.com/fedextrack/?trknbr=${c}` },
+  { id:'amazon', nom:'Amazon', mots:/amazon logistics|livr[ée]e? par amazon/i, domaine:/amazon\./i,
+    motifs:[/\b(TBA\d{12})\b/],
+    url:()=>`https://www.amazon.com.be/gp/css/order-history` },
+  { id:'autre', nom:'Autre', mots:/^\b$/, motifs:[], url:null },
+];
+const TR = id => TRANSPORTEURS.find(t=>t.id===id);
+
+const BOUTIQUES = [
+  ['Fnac',/\bfnac\b/i], ['Zooplus',/zooplus/i], ['Amazon',/amazon/i], ['Withings',/withings/i],
+  ['En mode rugby',/en\s?mode\s?rugby|enmoderugby/i], ['Vinted',/vinted/i], ['Bol',/\bbol\.com\b/i],
+  ['Zalando',/zalando/i], ['Coolblue',/coolblue/i], ['Decathlon',/decathlon/i], ['IKEA',/\bikea\b/i],
+  ['Apple',/apple store|apple\.com/i], ['AliExpress',/aliexpress/i], ['Temu',/\btemu\b/i],
+  ['Kruidvat',/kruidvat/i], ['MediaMarkt',/media\s?markt/i], ['Vanden Borre',/vanden\s?borre/i],
+];
+
+const MOIS = {janv:0,janvier:0,fevr:1,fevrier:1,mars:2,avr:3,avril:3,mai:4,juin:5,juil:6,juillet:6,
+  aout:7,sept:8,septembre:8,oct:9,octobre:9,nov:10,novembre:10,dec:11,decembre:11};
+const JOURS = {dimanche:0,lundi:1,mardi:2,mercredi:3,jeudi:4,vendredi:5,samedi:6};
+
+function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function sansAccent(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g,''); }
+// Choisit l'année la plus plausible pour un jour/mois donné sans année
+function avecAnnee(j, m, a, ref){
+  if (a){ a = +a; if (a < 100) a += 2000; return new Date(a, m, j); }
+  let d = new Date(ref.getFullYear(), m, j);
+  if ((d - ref) / 864e5 < -120) d = new Date(ref.getFullYear()+1, m, j);
+  return d;
+}
+
+function trouverDates(t, ref){
+  const res = [];
+  const s = sansAccent(t.toLowerCase());
+  const reMots = /(\d{1,2})(?:er)?\s+(janv(?:ier)?|fevr(?:ier)?|mars|avr(?:il)?|mai|juin|juil(?:let)?|aout|sept(?:embre)?|oct(?:obre)?|nov(?:embre)?|dec(?:embre)?)\.?(?:\s+(\d{4}))?/g;
+  let m;
+  while ((m = reMots.exec(s))){
+    const cle = Object.keys(MOIS).find(k => m[2] === k) ?? Object.keys(MOIS).find(k => m[2].startsWith(k));
+    res.push({ d: avecAnnee(+m[1], MOIS[cle], m[3], ref), idx: m.index });
+  }
+  const reNum = /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b|\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/g;
+  while ((m = reNum.exec(s))){
+    const j = +(m[1]||m[4]), mo = +(m[2]||m[5]) - 1, a = m[3]||m[6];
+    if (j>=1 && j<=31 && mo>=0 && mo<=11) res.push({ d: avecAnnee(j, mo, a, ref), idx: m.index });
+  }
+  const reRel = /apres-demain|aujourd'?hui|aujourd’hui|demain/g;
+  while ((m = reRel.exec(s))){
+    const plus = m[0].startsWith('apres') ? 2 : m[0] === 'demain' ? 1 : 0;
+    const d = new Date(ref); d.setDate(d.getDate()+plus);
+    res.push({ d, idx: m.index, relatif:true });
+  }
+  if (!res.length){
+    const reJour = /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/g;
+    while ((m = reJour.exec(s))){
+      const d = new Date(ref); const diff = (JOURS[m[1]] - d.getDay() + 7) % 7;
+      d.setDate(d.getDate()+diff); res.push({ d, idx: m.index, relatif:true });
+    }
+  }
+  return res.map(r => ({ iso: iso(r.d), idx: r.idx, relatif: !!r.relatif, ctx: s.slice(Math.max(0, r.idx-70), r.idx) }));
+}
+
+function analyser(brut, ref){
+  ref = ref || new Date();
+  const t = brut.replace(/[   ]/g, ' ');
+  const s = sansAccent(t.toLowerCase());
+  const r = { trouves: [] };
+
+  // Boutique
+  for (const [nom, re] of BOUTIQUES){ if (re.test(t)){ r.boutique = nom; break; } }
+
+  // Lien de suivi
+  const urls = t.match(/https?:\/\/[^\s<>"')\]]+/g) || [];
+  const lien = urls.find(u => /(track|suivi|trace|parcel|colis|sendung|zending|bpost|postnl|dhl|dpd|gls|ups\.com|laposte|colissimo|mondialrelay|chronopost|fedex|17track|aftership)/i.test(u));
+  if (lien) r.lien = lien.replace(/[.,;:!?]+$/, '');
+
+  // Transporteur
+  for (const c of TRANSPORTEURS){
+    if (c.mots.test(t) || (r.lien && c.domaine && c.domaine.test(r.lien))){ r.transporteur = c.id; break; }
+  }
+
+  // Numéro de commande (doit contenir un chiffre)
+  const reCmd = /(?:commande|order|bestelling)\s*(?:n(?:°|o|um[ée]ro)\.?\s*)?[:#]?\s*([A-Z0-9][A-Z0-9\-]{4,25})/gi;
+  let m;
+  while ((m = reCmd.exec(t))){ if (/\d/.test(m[1])){ r.numCommande = m[1].replace(/-$/, ''); break; } }
+
+  // Numéro de suivi
+  let code = null, par = null;
+  const ordre = r.transporteur ? [TR(r.transporteur), ...TRANSPORTEURS.filter(c => c.id !== r.transporteur)] : TRANSPORTEURS;
+  for (const c of ordre){
+    for (const re of c.motifs){ const x = t.match(re); if (x && x[1] !== r.numCommande){ code = x[1]; par = c.id; break; } }
+    if (code) break;
+  }
+  if (!code){
+    const g = t.match(/(?:n(?:°|o|um[ée]ro)\s*(?:de\s*)?(?:suivi|colis|envoi)|code\s*(?:de\s*)?suivi|tracking(?:\s*(?:number|n°|no|id))?|track\s*(?:&|and)?\s*trace|suivi)\s*[:#]?\s*([A-Z0-9][A-Z0-9\-]{7,34})/i);
+    if (g && /\d/.test(g[1]) && g[1] !== r.numCommande) code = g[1].replace(/-/g, '').toUpperCase();
+  }
+  if (!code && r.lien){
+    const q = r.lien.match(/(?:tracking-id|tracknum|itemcode|barcode|code|match|nums|parcel|trknbr|NumeroExpedition|listeNumerosLT|id)=([A-Z0-9]{8,34})/i)
+           || r.lien.match(/\/(?:parcel|track-and-trace|tracking|suivi)\/([A-Z0-9]{8,34})/i);
+    if (q) code = q[1].toUpperCase();
+  }
+  if (!code){
+    const x = t.match(/\b([A-Z]{2}\d{9}([A-Z]{2}))\b/);
+    if (x){ code = x[1]; par = {BE:'bpost', FR:'colissimo', NL:'postnl'}[x[2]] || 'autre'; }
+  }
+  if (code){ r.suivi = code; if (!r.transporteur && par) r.transporteur = par; }
+
+  // Étape
+  if (/(a ete livre|est livre|colis livre|commande livree|livre(?:e)? (?:le|a|ce|chez|dans)|delivered|bezorgd|a ete remis|depose dans (?:votre|ta) boite|a ete retire)/.test(s)) r.etape = 'livree';
+  else if (/(pret(?:e)? (?:a etre retire|au retrait|pour le retrait|a retirer)|disponible (?:en magasin|au point|en point|dans (?:votre|ton|le) point|au retrait|pour le retrait|a retirer)|vous attend|t'attend|peut etre retire|a retirer (?:avant|jusqu)|est arrive(?:e)? (?:en magasin|au point|dans (?:votre|ton) point))/.test(s)) r.etape = 'aretirer';
+  else if (/(en cours de livraison|livr\w* aujourd|arrive aujourd|out for delivery|chez (?:vous|toi) aujourd|en tournee)/.test(s)) r.etape = 'aujourdhui';
+  else if (/(expedi|arrive (?:demain|bientot|le|entre)|en route|pris en charge|en transit|a quitte|shipped|remis au transporteur|en chemin|est parti)/.test(s)) r.etape = 'expediee';
+  else if (/(merci pour (?:votre|ta) commande|commande (?:confirmee|recue|enregistree|validee)|confirmation de (?:votre |ta )?commande)/.test(s)) r.etape = 'commandee';
+
+  if (/(retrait en magasin|click\s?&\s?collect|retrait gratuit|a retirer en magasin|point relais|point de retrait)/.test(s)) r.modeRetrait = true;
+  if (/(report|retard|decal|delayed|nouvelle date)/.test(s)) r.reporte = true;
+
+  // Lieu de retrait Fnac
+  const lieu = t.match(/\b(Fnac\s+(?!Darty|\.)[A-ZÀ-Ü][\wà-ü'\-]+(?:\s[A-ZÀ-Ü][\wà-ü'\-]+)?)/);
+  if (lieu && (r.modeRetrait || r.etape === 'aretirer')) r.lieuRetrait = lieu[1];
+
+  // Dates
+  const dates = trouverDates(t, ref);
+  const aujourdhui = iso(ref);
+  const limites = dates.filter(d => /(avant le|jusqu'?au|jusqu’au|au plus tard|delai|retirer d'ici)\s*(?:le\s*)?(?:\w+\s*)?$/.test(d.ctx));
+  const livr = dates.filter(d => !limites.includes(d) && /(livr|arriv|prevu|estim|attendu|entre|report|delivery|recevr|nouvelle date|disponible|chez (?:vous|toi))/.test(d.ctx.slice(-60)));
+  if (limites.length && (r.etape === 'aretirer' || r.modeRetrait)) r.dateLimite = limites.map(d=>d.iso).sort().pop();
+  let choix = livr.length ? livr : dates.filter(d => !limites.includes(d) && d.iso >= aujourdhui);
+  if (r.etape === 'livree' || r.etape === 'aretirer') choix = [];
+  if (choix.length) r.dateLivraison = choix.map(d=>d.iso).sort().pop();
+  if (r.etape === 'aujourdhui') r.dateLivraison = aujourdhui;
+
+  // Résumé de ce qui a été reconnu
+  if (r.boutique) r.trouves.push('boutique');
+  if (r.transporteur) r.trouves.push('transporteur');
+  if (r.suivi) r.trouves.push('numéro de suivi');
+  if (r.lien) r.trouves.push('lien de suivi');
+  if (r.numCommande) r.trouves.push('n° de commande');
+  if (r.etape) r.trouves.push('étape');
+  if (r.dateLivraison) r.trouves.push('date annoncée');
+  if (r.dateLimite) r.trouves.push('date limite de retrait');
+  return r;
+}
+// ==== PARSER-END ====
+
+// ---------- Données ----------
+const CLE = 'inarrivo_commandes';
+let commandes = charger();
+function charger(){ try { return JSON.parse(localStorage.getItem(CLE)) || []; } catch(e){ return []; } }
+function sauver(){ try { localStorage.setItem(CLE, JSON.stringify(commandes)); } catch(e){ alert('Impossible d’enregistrer sur ce téléphone' + N + '!'); } }
+const auj = () => iso(new Date());
+const nouvelId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function ecart(a, b){ return Math.round((new Date(b+'T12:00') - new Date(a+'T12:00')) / 864e5); }
+function fmt(d){ return new Date(d+'T12:00').toLocaleDateString('fr-BE', {weekday:'short', day:'numeric', month:'short'}); }
+function fmtCourt(d){ return new Date(d+'T12:00').toLocaleDateString('fr-BE', {day:'numeric', month:'short'}); }
+const derniereDate = c => (c.dates && c.dates.length) ? c.dates[c.dates.length-1].date : null;
+
+const ETAPES = [
+  ['commandee','Commandée'], ['expediee','Expédiée'], ['aujourdhui','En livraison aujourd’hui'],
+  ['aretirer','Prête à retirer'], ['livree','Livrée / retirée'], ['annulee','Annulée'],
+];
+const RANG = {commandee:0, expediee:1, aujourdhui:2, aretirer:3, livree:4, annulee:5};
+const nomEtape = id => (ETAPES.find(e => e[0]===id) || ['', 'Commandée'])[1];
+
+function lienSuivi(c){
+  if (c.lien) return c.lien;
+  const t = TR(c.transporteur);
+  if (c.suivi && t && t.url) return t.url(encodeURIComponent(c.suivi));
+  if (c.suivi) return `https://t.17track.net/fr#nums=${encodeURIComponent(c.suivi)}`;
+  if (t && t.id === 'amazon') return t.url();
+  return null;
+}
+
+function statut(c){
+  const a = auj();
+  if (c.etape === 'livree' || c.etape === 'annulee') return { groupe:'fini', lib: c.etape === 'annulee' ? 'Annulée' : (c.livreeLe ? 'Reçue le ' + fmtCourt(c.livreeLe) : 'Reçue'), cls:'pale', tri: c.livreeLe || '' };
+  if (c.etape === 'aretirer'){
+    const l = c.dateLimite;
+    if (!l) return { groupe:'retirer', lib:'Prête à retirer', cls:'auj', tri:'9999' };
+    const j = ecart(a, l);
+    if (j < 0) return { groupe:'retirer', lib:'Délai de retrait dépassé', cls:'alerte', tri:l };
+    if (j === 0) return { groupe:'retirer', lib:'Dernier jour pour la retirer', cls:'alerte', tri:l };
+    if (j <= 2) return { groupe:'retirer', lib:`Plus que ${j} jour${j>1?'s':''} pour la retirer`, cls:'alerte', tri:l };
+    return { groupe:'retirer', lib:'À retirer avant le ' + fmt(l), cls:'auj', tri:l };
+  }
+  const d = derniereDate(c);
+  if (d){
+    const j = ecart(a, d);
+    if (j < 0) return { groupe:'retard', lib:`En retard de ${-j} jour${-j>1?'s':''}`, cls:'alerte', tri:d };
+    if (j === 0) return { groupe:'auj', lib: c.etape === 'aujourdhui' ? 'En cours de livraison' : 'Prévue aujourd’hui', cls:'auj', tri:d };
+    if (j === 1) return { groupe:'venir', lib:'Prévue demain', cls:'', tri:d };
+    return { groupe:'venir', lib:'Prévue ' + fmt(d), cls:'', tri:d };
+  }
+  return { groupe:'venir', lib:'Pas encore de date annoncée', cls:'pale', tri:'9999' };
+}
+
+function historique(c){
+  if (!c.dates || c.dates.length < 2) return '';
+  const n = c.dates.length - 1;
+  return 'Annoncée : ' + c.dates.map(x => fmtCourt(x.date)).join(' → ') + ` (repoussée ${n} fois)`;
+}
+
+// ---------- Liste ----------
+function carteHTML(c){
+  const st = statut(c);
+  const t = TR(c.transporteur);
+  const lien = lienSuivi(c);
+  const transp = [t && t.id !== 'autre' ? t.nom : '', c.suivi || ''].filter(Boolean).join(' · ');
+  const fini = st.groupe === 'fini';
+  return `<article class="carte ${fini ? '' : st.cls}" data-id="${c.id}">
+    <div class="haut"><span class="boutique">${esc(c.boutique || 'Commande')}</span><span class="etape">${esc(nomEtape(c.etape))}</span></div>
+    ${c.article ? `<div class="quoi">${esc(c.article)}</div>` : ''}
+    <div class="statut ${st.cls}">${esc(st.lib)}</div>
+    ${!fini && historique(c) ? `<div class="hist">${esc(historique(c))}</div>` : ''}
+    ${!fini && c.etape === 'aretirer' && c.lieuRetrait ? `<div class="hist">${esc(c.lieuRetrait)}</div>` : ''}
+    ${transp && !fini ? `<div class="transp">${esc(transp)}</div>` : ''}
+    ${fini ? '' : `<div class="actions">
+      ${lien ? `<a class="btn" href="${esc(lien)}" target="_blank" rel="noopener" data-stop>Suivre</a>` : ''}
+      <button class="ok" data-recue="${c.id}">${c.etape === 'aretirer' ? 'Retirée' : 'Reçue'} ✓</button>
+    </div>`}
+  </article>`;
+}
+
+function afficher(){
+  const groupes = { retard:[], auj:[], retirer:[], venir:[], fini:[] };
+  for (const c of commandes) groupes[statut(c).groupe].push(c);
+  const tri = (a, b) => statut(a).tri.localeCompare(statut(b).tri);
+  for (const g of ['retard','auj','retirer','venir']) groupes[g].sort(tri);
+  groupes.fini.sort((a,b) => (b.livreeLe||'').localeCompare(a.livreeLe||''));
+  const titres = { retard:'En retard', auj:'Aujourd’hui', retirer:'À retirer', venir:'À venir' };
+  let h = '';
+  for (const g of ['retard','auj','retirer','venir']){
+    if (!groupes[g].length) continue;
+    h += `<h2>${titres[g]} <span class="nb">${groupes[g].length}</span></h2>` + groupes[g].map(carteHTML).join('');
+  }
+  if (!h) h = `<div class="vide">Aucune commande en cours. Colle le message de confirmation ou de suivi, l’appli s’occupe du reste.</div>`;
+  if (groupes.fini.length) h += `<details class="fini"><summary>Reçues (${groupes.fini.length})</summary>${groupes.fini.map(carteHTML).join('')}</details>`;
+  document.getElementById('liste').innerHTML = h;
+}
+
+document.getElementById('liste').addEventListener('click', e => {
+  if (e.target.closest('[data-stop]')) return;
+  const b = e.target.closest('[data-recue]');
+  if (b){
+    const c = commandes.find(x => x.id === b.dataset.recue);
+    c.etape = 'livree'; c.livreeLe = auj();
+    (c.journal ||= []).push({ quand: auj(), texte: 'Marquée comme reçue' });
+    sauver(); afficher(); return;
+  }
+  const carte = e.target.closest('.carte');
+  if (carte) ouvrirFiche(structuredClone(commandes.find(x => x.id === carte.dataset.id)));
+});
+
+// ---------- Coller ----------
+const feuilleColler = document.getElementById('feuilleColler');
+const zone = document.getElementById('texteColle');
+document.getElementById('btnColler').onclick = () => { zone.value = ''; feuilleColler.hidden = false; zone.focus(); };
+document.getElementById('fermerColler').onclick = () => feuilleColler.hidden = true;
+document.getElementById('btnPressePapier').onclick = async () => {
+  try { zone.value = await navigator.clipboard.readText(); }
+  catch(e){ zone.focus(); alert('Appuie longuement dans la zone de texte, puis choisis « Coller ».'); }
+};
+document.getElementById('btnManuel').onclick = () => {
+  feuilleColler.hidden = true;
+  ouvrirFiche({ id: nouvelId(), etape:'commandee', dates:[], journal:[], creee: auj(), nouvelle:true });
+};
+document.getElementById('btnAnalyser').onclick = () => {
+  const texte = zone.value.trim();
+  if (!texte){ zone.focus(); return; }
+  const p = analyser(texte);
+  feuilleColler.hidden = true;
+  // Commandes existantes qui pourraient correspondre
+  const enCours = commandes.filter(c => c.etape !== 'livree' && c.etape !== 'annulee');
+  const exacte = commandes.find(c => (p.suivi && c.suivi === p.suivi) || (p.numCommande && c.numCommande === p.numCommande));
+  const proches = enCours.filter(c => c !== exacte && p.boutique && c.boutique === p.boutique);
+  const vierge = { id: nouvelId(), etape:'commandee', dates:[], journal:[], creee: auj(), nouvelle:true };
+  ouvrirFiche(fusion(structuredClone(exacte || vierge), p, texte), { p, texte, exacte, proches, vierge });
+};
+
+function fusion(c, p, texte){
+  for (const f of ['boutique','numCommande','transporteur','suivi','lien','lieuRetrait']) if (p[f] && !c[f]) c[f] = p[f];
+  if (p.dateLimite) c.dateLimite = p.dateLimite;
+  if (p.modeRetrait) c.modeRetrait = true;
+  if (p.etape && (c.nouvelle || RANG[p.etape] >= RANG[c.etape || 'commandee'])) c.etape = p.etape;
+  if (c.etape === 'livree' && !c.livreeLe) c.livreeLe = auj();
+  c.dates ||= [];
+  if (p.dateLivraison && p.dateLivraison !== derniereDate(c)) c.dates.push({ date: p.dateLivraison, notee: auj() });
+  (c.journal ||= []).push({ quand: auj(), texte: texte.slice(0, 400) });
+  return c;
+}
+
+// ---------- Fiche ----------
+const feuilleFiche = document.getElementById('feuilleFiche');
+const corps = document.getElementById('corpsFiche');
+document.getElementById('fermerFiche').onclick = () => { feuilleFiche.hidden = true; };
+let brouillon = null, contexte = null;
+
+function ouvrirFiche(c, ctx){
+  brouillon = c; contexte = ctx || null;
+  document.getElementById('titreFiche').textContent = c.nouvelle && !ctx ? 'Nouvelle commande' : (c.boutique || 'Commande');
+  const opts = TRANSPORTEURS.map(t => `<option value="${t.id}" ${c.transporteur === t.id ? 'selected':''}>${t.nom}</option>`).join('');
+  const boutiquesConnues = [...new Set([...BOUTIQUES.map(b=>b[0]), ...commandes.map(x=>x.boutique).filter(Boolean)])];
+  let h = '';
+  if (ctx){
+    h += ctx.p.trouves.length
+      ? `<div class="trouve">J’ai trouvé : ${ctx.p.trouves.join(', ')}. Vérifie et complète si besoin.</div>`
+      : `<div class="trouve rien">Je n’ai rien reconnu dans ce message. Remplis la fiche à la main.</div>`;
+    if (ctx.exacte) h += `<div class="choix">C’est la mise à jour d’une commande existante (${esc(ctx.exacte.boutique || 'commande')}).</div>`;
+    else if (ctx.proches.length){
+      h += `<div class="choix"><strong>C’est pour…</strong>
+        <label><input type="radio" name="cible" value="" ${c.nouvelle ? 'checked':''}> une nouvelle commande</label>
+        ${ctx.proches.map(x => `<label><input type="radio" name="cible" value="${x.id}" ${c.id === x.id ? 'checked':''}> ${esc(x.boutique)}${x.article ? ' – '+esc(x.article) : ''} (${esc(nomEtape(x.etape).toLowerCase())})</label>`).join('')}
+      </div>`;
+    }
+  }
+  const der = derniereDate(c) || '';
+  h += `
+    <label for="fBoutique">Boutique</label>
+    <input id="fBoutique" list="listeBoutiques" value="${esc(c.boutique)}" autocomplete="off">
+    <datalist id="listeBoutiques">${boutiquesConnues.map(b => `<option value="${esc(b)}">`).join('')}</datalist>
+    <label for="fArticle">Quoi${N}?</label>
+    <input id="fArticle" value="${esc(c.article)}" placeholder="ex. croquettes, maillot, balance…">
+    <label>Étape</label>
+    <div class="etapes">${ETAPES.map(([id, nom]) => `<button type="button" data-etape="${id}" class="${c.etape === id ? 'choisie':''}">${nom}</button>`).join('')}</div>
+    <label for="fDate">Date de livraison annoncée</label>
+    <input id="fDate" type="date" value="${der}">
+    ${historique(c) ? `<p class="aide">${esc(historique(c))}</p>` : `<p class="aide">Si la date change, mets la nouvelle : l’ancienne reste dans l’historique.</p>`}
+    <div class="retrait" id="blocRetrait" ${c.etape === 'aretirer' || c.modeRetrait ? '' : 'hidden'}>
+      <label for="fLieu">Lieu de retrait</label>
+      <input id="fLieu" value="${esc(c.lieuRetrait)}" placeholder="ex. Fnac Woluwe">
+      <label for="fLimite">À retirer avant le</label>
+      <input id="fLimite" type="date" value="${esc(c.dateLimite || '')}">
+    </div>
+    <label for="fTransp">Transporteur</label>
+    <select id="fTransp"><option value="">—</option>${opts}</select>
+    <label for="fSuivi">Numéro de suivi</label>
+    <input id="fSuivi" value="${esc(c.suivi)}" autocapitalize="characters" autocomplete="off">
+    <label for="fLien">Lien de suivi</label>
+    <input id="fLien" type="url" value="${esc(c.lien)}" placeholder="https://…">
+    <label for="fCmd">N° de commande</label>
+    <input id="fCmd" value="${esc(c.numCommande)}" autocomplete="off">
+    <label for="fNote">Note</label>
+    <textarea id="fNote" style="min-height:4.5rem">${esc(c.note)}</textarea>
+    <div class="rangee"><button class="principal" id="btnEnregistrer">Enregistrer</button></div>
+    ${!c.nouvelle && !ctx ? `<div class="rangee">${lienSuivi(c) ? `<a class="btn" href="${esc(lienSuivi(c))}" target="_blank" rel="noopener">Suivre le colis</a>` : ''}<button class="danger" id="btnSupprimer">Supprimer</button></div>` : ''}
+    ${(c.journal || []).length ? `<details style="margin-top:1.2rem"><summary>Messages collés (${c.journal.length})</summary>${c.journal.slice().reverse().map(j => `<div class="journal"><strong>${fmtCourt(j.quand)}</strong>\n${esc(j.texte)}</div>`).join('')}</details>` : ''}
+  `;
+  corps.innerHTML = h;
+  feuilleFiche.hidden = false;
+  feuilleFiche.scrollTop = 0;
+
+  corps.querySelectorAll('[data-etape]').forEach(b => b.onclick = () => {
+    corps.querySelectorAll('[data-etape]').forEach(x => x.classList.remove('choisie'));
+    b.classList.add('choisie');
+    document.getElementById('blocRetrait').hidden = !(b.dataset.etape === 'aretirer' || brouillon.modeRetrait);
+  });
+  corps.querySelectorAll('input[name=cible]').forEach(r => r.onchange = () => {
+    const base = r.value ? structuredClone(commandes.find(x => x.id === r.value)) : structuredClone(contexte.vierge);
+    ouvrirFiche(fusion(base, contexte.p, contexte.texte), contexte);
+  });
+  document.getElementById('btnEnregistrer').onclick = enregistrer;
+  const sup = document.getElementById('btnSupprimer');
+  if (sup) sup.onclick = () => {
+    if (!confirm('Supprimer cette commande' + N + '?')) return;
+    commandes = commandes.filter(x => x.id !== brouillon.id); sauver(); feuilleFiche.hidden = true; afficher();
+  };
+}
+
+function enregistrer(){
+  const c = brouillon, v = id => document.getElementById(id).value.trim();
+  c.boutique = v('fBoutique'); c.article = v('fArticle'); c.transporteur = v('fTransp');
+  c.suivi = v('fSuivi').replace(/\s+/g, '').toUpperCase(); c.lien = v('fLien'); c.numCommande = v('fCmd'); c.note = v('fNote');
+  c.lieuRetrait = v('fLieu'); c.dateLimite = v('fLimite');
+  const choisie = corps.querySelector('[data-etape].choisie');
+  const etape = choisie ? choisie.dataset.etape : 'commandee';
+  if (etape === 'livree' && c.etape !== 'livree') c.livreeLe = auj();
+  if (etape !== 'livree') delete c.livreeLe;
+  c.etape = etape;
+  c.dates ||= [];
+  let d = v('fDate');
+  if (etape === 'aujourdhui') d = auj();
+  if (d && d !== derniereDate(c)) c.dates.push({ date: d, notee: auj() });
+  delete c.nouvelle;
+  const i = commandes.findIndex(x => x.id === c.id);
+  if (i >= 0) commandes[i] = c; else commandes.push(c);
+  sauver(); feuilleFiche.hidden = true; afficher();
+}
+
+// ---------- Sauvegarde ----------
+document.getElementById('btnExport').onclick = () => {
+  const blob = new Blob([JSON.stringify({ appli:'In arrivo', version:1, le: auj(), commandes }, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `in-arrivo-${auj()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+};
+const fichier = document.getElementById('fichierImport');
+document.getElementById('btnImport').onclick = () => fichier.click();
+fichier.onchange = async () => {
+  try {
+    const data = JSON.parse(await fichier.files[0].text());
+    const liste = Array.isArray(data) ? data : data.commandes;
+    if (!Array.isArray(liste)) throw 0;
+    if (!confirm(`Remplacer tes commandes actuelles par les ${liste.length} de la sauvegarde${N}?`)) return;
+    commandes = liste; sauver(); afficher();
+  } catch(e){ alert('Ce fichier n’est pas une sauvegarde d’In arrivo.'); }
+  fichier.value = '';
+};
+
+afficher();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) afficher(); });
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
