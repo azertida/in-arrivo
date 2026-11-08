@@ -61,11 +61,17 @@ details.fini .carte{opacity:.8}
 .feuille main{padding-top:.2rem}
 textarea,input,select{font:inherit;width:100%;border:1px solid var(--bord);border-radius:.7rem;padding:.65rem .75rem;background:#fff;color:var(--texte)}
 textarea{min-height:11rem;resize:vertical}
+/* iOS : les champs date ont une largeur minimale propre qui déborde */
+input[type=date]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;min-height:2.9rem;text-align:left}
+input[type=date]::-webkit-date-and-time-value{text-align:left}
+.feuille,.feuille main{overflow-x:hidden}
+.feuille main>*{max-width:100%}
+.choix label,.trouve{overflow-wrap:anywhere}
 label{display:block;margin:.9rem 0 .25rem;font-weight:600}
 .aide{color:var(--doux);margin:.25rem 0 0}
 .rangee{display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap}
 .rangee>*{flex:1}
-.etapes{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
+.etapes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.45rem}
 .etapes button{padding:.6rem .4rem}
 .etapes button.choisie{background:var(--ocre);color:#fff;border-color:var(--ocre);font-weight:600}
 .trouve{background:var(--vert-fond);border:1px solid #BFD6BA;border-radius:.8rem;padding:.7rem .9rem;margin:.6rem 0}
