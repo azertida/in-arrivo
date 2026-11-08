@@ -94,6 +94,7 @@ label{display:block;margin:.9rem 0 .25rem;font-weight:600}
   <div id="liste"></div>
   <div class="pied">
     <div>Tes commandes restent sur ce téléphone. Pense à les sauvegarder de temps en temps.</div>
+    <div style="margin-top:.4rem">In arrivo · v6</div>
     <div class="actions">
       <button id="btnExport">Sauvegarder</button>
       <button id="btnImport">Restaurer</button>
@@ -107,12 +108,12 @@ label{display:block;margin:.9rem 0 .25rem;font-weight:600}
   <div class="barre"><h2>Coller un message</h2><button id="fermerColler">Fermer</button></div>
   <main>
     <p class="aide">Mail, WhatsApp, notification de Cartes… colle le texte tel quel, je cherche le reste.</p>
+    <p class="aide" style="margin-bottom:.7rem">Une capture d’écran&#8239;? Ouvre-la dans Photos, appuie longuement sur le texte, puis « Tout sélectionner » et « Copier ».</p>
     <textarea id="texteColle" placeholder="Colle ici le message de la boutique ou du transporteur"></textarea>
     <div class="rangee">
       <button id="btnPressePapier">Coller</button>
       <button class="principal" id="btnAnalyser">Analyser</button>
     </div>
-    <p class="aide">Une capture d’écran&#8239;? Ouvre-la dans Photos, appuie longuement sur le texte, puis « Tout sélectionner » et « Copier ».</p>
     <p><button class="lien" id="btnManuel">Saisir sans message</button></p>
   </main>
 </section>
@@ -410,7 +411,7 @@ document.getElementById('liste').addEventListener('click', e => {
 // ---------- Coller ----------
 const feuilleColler = document.getElementById('feuilleColler');
 const zone = document.getElementById('texteColle');
-document.getElementById('btnColler').onclick = () => { zone.value = ''; feuilleColler.hidden = false; zone.focus(); };
+document.getElementById('btnColler').onclick = () => { zone.value = ''; feuilleColler.hidden = false; feuilleColler.scrollTop = 0; };
 document.getElementById('fermerColler').onclick = () => feuilleColler.hidden = true;
 document.getElementById('btnPressePapier').onclick = async () => {
   try { zone.value = await navigator.clipboard.readText(); }
