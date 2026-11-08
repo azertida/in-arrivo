@@ -371,7 +371,7 @@ function carteHTML(c){
     ${transp && !fini ? `<div class="transp">${esc(transp)}</div>` : ''}
     ${fini ? '' : `<div class="actions">
       ${lien ? `<a class="btn" href="${esc(lien)}" target="_blank" rel="noopener" data-stop>Suivre</a>` : ''}
-      <button class="ok" data-recue="${c.id}">${c.etape === 'aretirer' ? 'Retirée' : 'Reçue'} ✓</button>
+      <button data-recue="${c.id}">${c.etape === 'aretirer' ? 'Je l’ai retirée' : 'Je l’ai reçue'}</button>
     </div>`}
   </article>`;
 }
