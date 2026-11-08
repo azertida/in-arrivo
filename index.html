@@ -94,7 +94,7 @@ label{display:block;margin:.9rem 0 .25rem;font-weight:600}
   <div id="liste"></div>
   <div class="pied">
     <div>Tes commandes restent sur ce téléphone. Pense à les sauvegarder de temps en temps.</div>
-    <div style="margin-top:.4rem">In arrivo · v6</div>
+    <div style="margin-top:.4rem">In arrivo · v7</div>
     <div class="actions">
       <button id="btnExport">Sauvegarder</button>
       <button id="btnImport">Restaurer</button>
@@ -566,7 +566,15 @@ fichier.onchange = async () => {
 afficher();
 document.addEventListener('visibilitychange', () => { if (!document.hidden) afficher(); });
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  // Recharge la page dès qu'une nouvelle version prend le relais
+  const avait = !!navigator.serviceWorker.controller;
+  let recharge = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (avait && !recharge){ recharge = true; location.reload(); }
+  });
+  navigator.serviceWorker.register('sw.js').then(r => {
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) r.update().catch(() => {}); });
+  }).catch(() => {});
 }
 </script>
 </body>
