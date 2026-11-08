@@ -1,5 +1,5 @@
 // Incrémenter à chaque déploiement
-const CACHE_NAME = 'inarrivo-v7';
+const CACHE_NAME = 'inarrivo-v8';
 const FICHIERS = ['./', 'index.html', 'manifest.json', 'icon.png', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(FICHIERS.map(f => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting()));

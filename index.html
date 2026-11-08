@@ -94,7 +94,7 @@ label{display:block;margin:.9rem 0 .25rem;font-weight:600}
   <div id="liste"></div>
   <div class="pied">
     <div>Tes commandes restent sur ce téléphone. Pense à les sauvegarder de temps en temps.</div>
-    <div style="margin-top:.4rem">In arrivo · v7</div>
+    <div style="margin-top:.4rem">In arrivo · v8</div>
     <div class="actions">
       <button id="btnExport">Sauvegarder</button>
       <button id="btnImport">Restaurer</button>
@@ -130,8 +130,8 @@ label{display:block;margin:.9rem 0 .25rem;font-weight:600}
 const N = ' '; // espace fine insécable avant ? ! ; :
 
 const TRANSPORTEURS = [
-  { id:'bpost', nom:'bpost', mots:/\bbpost\b/i, domaine:/bpost/i,
-    motifs:[/\b(3232\d{20})\b/, /\b([A-Z]{2}\d{9}BE)\b/, /\b(\d{24})\b/],
+  { id:'bpost', nom:'bpost', mots:/\b[bo]post\b|point colis|point d.enl[eè]vement|bpack/i, domaine:/bpost/i,
+    motifs:[/\b(3232\d{20})\b/, /\b([A-Z]{2}\d{9}BE)\b/, /\b(\d{24})\b/, /\b(00(?!340)\d{18})\b/],
     url:c=>`https://track.bpost.cloud/btr/web/#/search?itemCode=${c}&lang=fr` },
   { id:'postnl', nom:'PostNL', mots:/post\s?nl/i, domaine:/postnl/i,
     motifs:[/\b(3S[A-Z0-9]{8,13})\b/, /\b([A-Z]{2}\d{9}NL)\b/],
@@ -223,6 +223,10 @@ function analyser(brut, ref){
 
   // Boutique
   for (const [nom, re] of BOUTIQUES){ if (re.test(t)){ r.boutique = nom; break; } }
+  if (!r.boutique){
+    const ex = t.match(/^\s*(?:De|Exp[ée]diteur\s*:|Envoy[ée] par|Vendu par)\s+([A-Za-zÀ-ÿ0-9&'.\- ]{2,40}?)\s*$/m);
+    if (ex) r.boutique = ex[1].trim().replace(/\S+/g, m => m.length > 3 && m === m.toUpperCase() ? m[0] + m.slice(1).toLowerCase() : m);
+  }
 
   // Lien de suivi
   const urls = t.match(/https?:\/\/[^\s<>"')\]]+/g) || [];
@@ -268,12 +272,16 @@ function analyser(brut, ref){
   else if (/(expedi|arrive (?:demain|bientot|le|entre)|en route|pris en charge|en transit|a quitte|shipped|remis au transporteur|en chemin|est parti)/.test(s)) r.etape = 'expediee';
   else if (/(merci pour (?:votre|ta) commande|commande (?:confirmee|recue|enregistree|validee)|confirmation de (?:votre |ta )?commande)/.test(s)) r.etape = 'commandee';
 
-  if (/(retrait en magasin|click\s?&\s?collect|retrait gratuit|a retirer en magasin|point relais|point de retrait)/.test(s)) r.modeRetrait = true;
+  if (/(retrait en magasin|click\s?&\s?collect|retrait gratuit|a retirer en magasin|point relais|point de retrait|point colis|point d.enlevement|distributeur de colis|parcel locker)/.test(s)) r.modeRetrait = true;
   if (/(report|retard|decal|delayed|nouvelle date)/.test(s)) r.reporte = true;
 
   // Lieu de retrait Fnac
   const lieu = t.match(/\b(Fnac\s+(?!Darty|\.)[A-ZÀ-Ü][\wà-ü'\-]+(?:\s[A-ZÀ-Ü][\wà-ü'\-]+)?)/);
   if (lieu && (r.modeRetrait || r.etape === 'aretirer')) r.lieuRetrait = lieu[1];
+  if (!r.lieuRetrait && r.modeRetrait){
+    const pt = t.match(/^\s*(?:Point d.enl[eè]vement|Point Colis|Point relais|Point de retrait)\s*:?\s*\n\s*([^\n]{4,120})/im);
+    if (pt) r.lieuRetrait = pt[1].split(' / ')[0].trim();
+  }
 
   // Dates
   const dates = trouverDates(t, ref);
@@ -295,6 +303,7 @@ function analyser(brut, ref){
   if (r.etape) r.trouves.push('étape');
   if (r.dateLivraison) r.trouves.push('date annoncée');
   if (r.dateLimite) r.trouves.push('date limite de retrait');
+  if (r.lieuRetrait) r.trouves.push('lieu de retrait');
   return r;
 }
 // ==== PARSER-END ====
